@@ -1,7 +1,7 @@
 import sys
 import os
 import requests
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QFileDialog, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QFileDialog, QLabel, QLineEdit
 from PyQt5.QtCore import Qt, QCoreApplication
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
@@ -16,12 +16,19 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Скачивание изображений")
         self.setGeometry(100, 100, 400, 250)
 
-        self.button = QPushButton("Выбрать файл", self)
-        self.button.setGeometry(50, 50, 300, 50)
-        self.button.clicked.connect(self.open_file_dialog)
+        self.button_file = QPushButton("Выбрать файл", self)
+        self.button_file.setGeometry(50, 50, 150, 30)
+        self.button_file.clicked.connect(self.open_file_dialog)
+
+        self.button_url = QPushButton("Скачать через URL", self)
+        self.button_url.setGeometry(210, 50, 150, 30)
+        self.button_url.clicked.connect(self.download_images_from_url)
+
+        self.url_lineedit = QLineEdit(self)
+        self.url_lineedit.setGeometry(50, 100, 310, 30)
 
         self.progress_label = QLabel(self)
-        self.progress_label.setGeometry(50, 120, 300, 100)
+        self.progress_label.setGeometry(50, 150, 300, 100)
         self.progress_label.setAlignment(Qt.AlignTop)
         self.progress_label.setWordWrap(True)
 
@@ -32,9 +39,17 @@ class MainWindow(QMainWindow):
         if file_name:
             self.download_images(file_name)
 
-    def download_images(self, file_name):
-        with open(file_name, 'r') as file:
-            urls = file.readlines()
+    def download_images_from_url(self):
+        url = self.url_lineedit.text().strip()
+        if url:
+            self.download_images(url)
+
+    def download_images(self, source):
+        if os.path.isfile(source):
+            with open(source, 'r') as file:
+                urls = file.readlines()
+        else:
+            urls = [source]
 
         images_folder = 'images'
         os.makedirs(images_folder, exist_ok=True)
@@ -62,7 +77,7 @@ class MainWindow(QMainWindow):
                         QCoreApplication.processEvents()
 
         # Завершаем работу приложения только после загрузки всех изображений
-        QCoreApplication.quit()
+        self.progress_label.setText("Загрузка изображений завершена!")
 
 
 if __name__ == "__main__":
