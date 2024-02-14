@@ -45,15 +45,19 @@ class MainWindow(QMainWindow):
                 folder_path = os.path.join(images_folder, folder_name)
                 os.makedirs(folder_path)
 
+                img_count = 1  # Счетчик изображений
+
                 for img_tag in img_tags:
                     img_url = img_tag.get('src')
                     if img_url:
                         if not urlparse(img_url).netloc:
                             img_url = urljoin(url, img_url)
-                        img_name = os.path.basename(urlparse(img_url).path)
+                        img_ext = os.path.splitext(img_url)[1]  # Получаем расширение изображения
+                        img_name = f"{img_count}{img_ext}"  # Формируем имя файла с порядковым номером
                         img_path = os.path.join(folder_path, img_name)
                         urlretrieve(img_url, img_path)
                         print(f'Изображение сохранено: {img_path}')
+                        img_count += 1  # Увеличиваем счетчик изображений
 
         # Завершаем работу приложения только после загрузки всех изображений
         QCoreApplication.quit()
