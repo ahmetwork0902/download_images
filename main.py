@@ -1,8 +1,8 @@
 import sys
 import os
 import requests
-from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QFileDialog
-from PyQt5.QtCore import QCoreApplication
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QFileDialog, QLabel
+from PyQt5.QtCore import Qt, QCoreApplication
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin, urlparse
 from urllib.request import urlretrieve
@@ -14,11 +14,16 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Скачивание изображений")
-        self.setGeometry(100, 100, 300, 200)
+        self.setGeometry(100, 100, 400, 250)
 
         self.button = QPushButton("Выбрать файл", self)
-        self.button.setGeometry(50, 50, 200, 50)
+        self.button.setGeometry(50, 50, 300, 50)
         self.button.clicked.connect(self.open_file_dialog)
+
+        self.progress_label = QLabel(self)
+        self.progress_label.setGeometry(50, 120, 300, 100)
+        self.progress_label.setAlignment(Qt.AlignTop)
+        self.progress_label.setWordWrap(True)
 
     def open_file_dialog(self):
         options = QFileDialog.Options()
@@ -45,19 +50,16 @@ class MainWindow(QMainWindow):
                 folder_path = os.path.join(images_folder, folder_name)
                 os.makedirs(folder_path)
 
-                img_count = 1  # Счетчик изображений
-
-                for img_tag in img_tags:
+                for i, img_tag in enumerate(img_tags, start=1):
                     img_url = img_tag.get('src')
                     if img_url:
                         if not urlparse(img_url).netloc:
                             img_url = urljoin(url, img_url)
-                        img_ext = os.path.splitext(img_url)[1]  # Получаем расширение изображения
-                        img_name = f"{img_count}{img_ext}"  # Формируем имя файла с порядковым номером
+                        img_name = f"{i}.jpg"
                         img_path = os.path.join(folder_path, img_name)
                         urlretrieve(img_url, img_path)
-                        print(f'Изображение сохранено: {img_path}')
-                        img_count += 1  # Увеличиваем счетчик изображений
+                        self.progress_label.setText(f'Изображение сохранено: {img_path}')
+                        QCoreApplication.processEvents()
 
         # Завершаем работу приложения только после загрузки всех изображений
         QCoreApplication.quit()
